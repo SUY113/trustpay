@@ -17,11 +17,11 @@ async function main() {
         const key = fs.readFileSync(keyPath).toString();
 
         // Tạo ví (wallet) và nhập danh tính của admin vào ví
-        const walletPath = path.join(process.cwd(), 'wallet');
+        const walletPath = path.join(process.cwd(), 'wallet', `${orgName}`);
         const wallet = new FileSystemWallet(walletPath);
         console.log(`Wallet path: ${walletPath}`);
 
-        // Kiểm tra xem danh tính admin đã tồn tại trong ví hay chưa
+        // Kiểm tra xem danh tính admin đã tồn tại trong ví ha chưa
         const adminExists = await wallet.exists('Admin');
         if (adminExists) {
             console.log('An identity for the admin user "Admin" already exists in the wallet');
