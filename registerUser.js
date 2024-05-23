@@ -13,10 +13,9 @@ async function main() {
         // Nhận tên người dùng và tổ chức từ đối số dòng lệnh
         const userName = process.argv[2];
         const orgName = process.argv[3];
-        const displayName = process.argv[4];
 
         // Kiểm tra xem người dùng và tổ chức đã được cung cấp hay chưa
-        if (!userName || !orgName || !displayName) {
+        if (!userName || !orgName) {
             console.log('Please provide the username and organization.');
             return;
         }
@@ -37,24 +36,24 @@ async function main() {
         const key = fs.readFileSync(keyPath).toString();
 
         // Tạo ví (wallet) và nhập danh tính của người dùng vào ví
-        const walletPath = path.join(process.cwd() ,'wallet', `${orgName}`, `${displayName}`);
+        const walletPath = path.join(process.cwd() ,'wallet', `${orgName}`);
         const wallet = new FileSystemWallet(walletPath);
         console.log(`Wallet path: ${walletPath}`);
 
         // Kiểm tra xem danh tính của người dùng đã tồn tại trong ví hay chưa
         const userExists = await wallet.exists(userName);
         if (userExists) {
-            console.log(`An identity for the user "${displayName}" already exists in the wallet`);
+            console.log(`An identity for the user "${userName}" already exists in the wallet`);
             return;
         }
 
         // Tạo danh tính X.509 cho người dùng và nhập vào ví
         const userIdentity = X509WalletMixin.createIdentity(`${orgName}MSP`, cert, key);
         await wallet.import(userName, userIdentity);
-        console.log(`Successfully imported user "${displayName}" into the wallet`);
+        console.log(`Successfully imported user "${userName}" into the wallet`);
 
     } catch (error) {
-        console.error(`Failed to import user "${displayName}": ${error}`);
+        console.error(`Failed to import user "${userName}": ${error}`);
         process.exit(1);
     }
 }
