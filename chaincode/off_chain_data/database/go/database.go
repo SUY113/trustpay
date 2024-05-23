@@ -33,7 +33,9 @@ func (t *DatabaseChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response
     case "initPerson":
     	return t.initPerson(stub, args)
     case "queryAll":
-    	return t.queryAll(stub)  
+    	return t.queryAll(stub)
+    case "queryById":
+    	return t.queryById(stub, args)  
     }
     return shim.Error("Invalid function name")
 }
@@ -151,6 +153,17 @@ func (t *DatabaseChaincode) queryAll(stub shim.ChaincodeStubInterface) pb.Respon
 
 	// Return the result as shim.Success
 	return shim.Success([]byte(buffer.String()))
+}
+
+//queryById
+func (t *DatabaseChaincode) queryById(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	if len(args) != 1 {
+		return shim.Error("Incorrect number of arguments. Expecting 1")
+	}
+
+	carAsBytes, _ := stub.GetState(args[0])
+	return shim.Success(carAsBytes)
 }
 
 func main() {

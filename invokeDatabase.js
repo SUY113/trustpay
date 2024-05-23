@@ -14,6 +14,9 @@ async function main() {
        
       const userName = process.argv[2];
       const orgName = process.argv[3]; 
+      const name = process.argv[4];
+      const age = process.argv[5]
+      
       if (!userName || !orgName) {
           console.log('Please provide the username and organization.');
           return;
@@ -44,7 +47,7 @@ async function main() {
       // Get the contract from the network.
       const contract = network.getContract('database');
 
-      await contract.submitTransaction('initPerson', 'Emp3', 'Thai', '19', 'Staff');
+      await contract.submitTransaction('initPerson', `Emp${userName}`, `${name}`, `${age}`, `${orgName}`);
       console.log('Transaction has been submitted');
 
       // Disconnect from the gateway.

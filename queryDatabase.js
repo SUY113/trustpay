@@ -44,7 +44,7 @@ async function main() {
       // Get the contract from the network.
       const contract = network.getContract('database');
 
-      const result = await contract.evaluateTransaction('queryAll');
+      const result = await contract.evaluateTransaction('queryById', `Emp${userName}`);
       console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
 
       // Disconnect from the gateway.
