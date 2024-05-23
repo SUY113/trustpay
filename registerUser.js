@@ -21,16 +21,16 @@ async function main() {
         }
 
         // Xây dựng đường dẫn tới thư mục chứa tài liệu mật mã của người dùng
-        const cryptoConfigPath = path.resolve(__dirname, '..', '..', 'first-network', 'crypto-config', 'peerOrganizations', `${orgName}.example.com`, 'users', `${userName}@${orgName}.example.com`, 'msp');
+        const cryptoConfigPath = path.resolve(__dirname, '..', '..', 'first-network', 'crypto-config', 'peerOrganizations', `org${orgName}.example.com`, 'users', `${userName}@org${orgName}.example.com`, 'msp');
 
         // Kiểm tra xem thư mục của người dùng tồn tại hay không
         if (!fs.existsSync(cryptoConfigPath)) {
-            console.log(`User "${userName}" in organization "${orgName}" does not exist.`);
+            console.log(`User "${userName}" in organization "org${orgName}" does not exist.`);
             return;
         }
 
         // Đọc chứng chỉ và khóa riêng tư của người dùng
-        const certPath = path.join(cryptoConfigPath, 'signcerts', `${userName}@${orgName}.example.com-cert.pem`);
+        const certPath = path.join(cryptoConfigPath, 'signcerts', `${userName}@org${orgName}.example.com-cert.pem`);
         const keyPath = path.join(cryptoConfigPath, 'keystore', fs.readdirSync(path.join(cryptoConfigPath, 'keystore'))[0]);
         const cert = fs.readFileSync(certPath).toString();
         const key = fs.readFileSync(keyPath).toString();
@@ -48,7 +48,7 @@ async function main() {
         }
 
         // Tạo danh tính X.509 cho người dùng và nhập vào ví
-        const userIdentity = X509WalletMixin.createIdentity(`${orgName}MSP`, cert, key);
+        const userIdentity = X509WalletMixin.createIdentity(`Org${orgName}MSP`, cert, key);
         await wallet.import(userName, userIdentity);
         console.log(`Successfully imported user "${userName}" into the wallet`);
 

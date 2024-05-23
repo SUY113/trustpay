@@ -8,10 +8,10 @@ async function main() {
     try {
       	const orgName = process.argv[2];
         // Đường dẫn tới thư mục chứa tài liệu mật mã của admin được tạo bởi cryptogen
-        const cryptoConfigPath = path.resolve(__dirname, '..', '..', 'first-network', 'crypto-config', 'peerOrganizations', `${orgName}.example.com`, 'users', `Admin@${orgName}.example.com`, 'msp');
+        const cryptoConfigPath = path.resolve(__dirname, '..', '..', 'first-network', 'crypto-config', 'peerOrganizations', `org${orgName}.example.com`, 'users', `Admin@org${orgName}.example.com`, 'msp');
         
         // Đọc chứng chỉ và khóa riêng tư của admin
-        const certPath = path.join(cryptoConfigPath, 'signcerts', `Admin@${orgName}.example.com-cert.pem`);
+        const certPath = path.join(cryptoConfigPath, 'signcerts', `Admin@org${orgName}.example.com-cert.pem`);
         const keyPath = path.join(cryptoConfigPath, 'keystore', fs.readdirSync(path.join(cryptoConfigPath, 'keystore'))[0]);
         const cert = fs.readFileSync(certPath).toString();
         const key = fs.readFileSync(keyPath).toString();
@@ -29,7 +29,7 @@ async function main() {
         }
 
         // Tạo danh tính X.509 cho admin và nhập vào ví
-        const identity = X509WalletMixin.createIdentity(`${orgName}MSP`, cert, key);
+        const identity = X509WalletMixin.createIdentity(`Org${orgName}MSP`, cert, key);
         identity.roles = ['Admin']; 
         await wallet.import('Admin', identity);
         console.log('Successfully imported admin user "Admin" into the wallet');

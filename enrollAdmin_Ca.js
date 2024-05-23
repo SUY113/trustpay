@@ -19,11 +19,11 @@ async function main() {
     try {
     	const orgName = process.argv[2];
     	
-        const ccpPath = path.resolve(__dirname, '..', '..', 'first-network', `connection-${orgName}.json`);
+        const ccpPath = path.resolve(__dirname, '..', '..', 'first-network', `connection-org${orgName}.json`);
         const ccpJSON = fs.readFileSync(ccpPath, 'utf8');
 	const ccp = JSON.parse(ccpJSON);
         // Create a new CA client for interacting with the CA.
-        const caURL = ccp.certificateAuthorities[`ca.${orgName}.example.com`].url;
+        const caURL = ccp.certificateAuthorities[`ca.org${orgName}.example.com`].url;
         const ca = new FabricCAServices(caURL);
 
         // Create a new file system based wallet for managing identities.
@@ -40,7 +40,7 @@ async function main() {
 
         // Enroll the admin user, and import the new identity into the wallet.
         const enrollment = await ca.enroll({ enrollmentID: 'admin', enrollmentSecret: 'adminpw' });
-        const identity = X509WalletMixin.createIdentity(`${orgName}MSP`, enrollment.certificate, enrollment.key.toBytes());
+        const identity = X509WalletMixin.createIdentity(`Org${orgName}MSP`, enrollment.certificate, enrollment.key.toBytes());
         wallet.import('admin', identity);
         console.log('Successfully enrolled admin user "admin" and imported it into the wallet');
 

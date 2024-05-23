@@ -44,8 +44,8 @@ async function main() {
       // Get the contract from the network.
       const contract = network.getContract('database');
 
-      await contract.submitTransaction('initPerson', 'Emp3', 'Thai', '19', 'Staff');
-      console.log('Transaction has been submitted');
+      const result = await contract.evaluateTransaction('queryAll');
+      console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
 
       // Disconnect from the gateway.
       await gateway.disconnect();

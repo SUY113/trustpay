@@ -13,10 +13,11 @@ const path = require('path');
 
 async function main() {
     try {
+    	//Tuan[2] Accountant[3]
     	const userName = process.argv[2];
 	const orgName = process.argv[3];
 	
-	const ccpPath = path.resolve(__dirname, '..', '..', 'first-network', `connection-${orgName}.json`);
+	const ccpPath = path.resolve(__dirname, '..', '..', 'first-network', `connection-org${orgName}.json`);
 	const ccpJSON = fs.readFileSync(ccpPath, 'utf8');
 	const ccp = JSON.parse(ccpJSON);
 	
@@ -51,7 +52,7 @@ async function main() {
         // Register the user, enroll the user, and import the new identity into the wallet.
         const secret = await ca.register({ enrollmentID: userName, role: 'client' }, adminIdentity);
         const enrollment = await ca.enroll({ enrollmentID: userName, enrollmentSecret: secret });
-        const userIdentity = X509WalletMixin.createIdentity(`${orgName}MSP`, enrollment.certificate, enrollment.key.toBytes());
+        const userIdentity = X509WalletMixin.createIdentity(`Org${orgName}MSP`, enrollment.certificate, enrollment.key.toBytes());
         wallet.import(userName, userIdentity);
         console.log(`Successfully registered and enrolled admin user "${userName}" and imported it into the wallet`);
 
