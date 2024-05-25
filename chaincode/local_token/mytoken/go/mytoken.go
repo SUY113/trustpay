@@ -9,7 +9,7 @@ import (
     "errors"
 
     "github.com/hyperledger/fabric/core/chaincode/shim"
-    pb "github.com/hyperledger/fabric/protos/peer"
+    pb "github.com/hyperledger/fabric/protos/peer"z
 )
 
 // TokenERC20Chaincode implements a simple ERC20 token on Hyperledger Fabric
