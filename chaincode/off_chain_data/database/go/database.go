@@ -19,6 +19,7 @@ type person struct {
 	Name     string `json:"name"`
 	Age      int    `json:"age"`
 	Org      string `json:"org"`
+	EthAddress string `json:"ethaddress"`
 }
 
 func (t *DatabaseChaincode) Init(stub shim.ChaincodeStubInterface) pb.Response {
@@ -35,7 +36,9 @@ func (t *DatabaseChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response
     case "queryAll":
     	return t.queryAll(stub)
     case "queryById":
-    	return t.queryById(stub, args)  
+    	return t.queryById(stub, args) 
+    case "getEthAddress": 
+	return t.getEthAddress(stub, args) 
     }
     return shim.Error("Invalid function name")
 }
@@ -43,9 +46,9 @@ func (t *DatabaseChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response
 func (t *DatabaseChaincode) initPerson(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	var err error
 
-	//   0          1       2      3
-	// "Emp1", "Tuan",   "35",  "Staff/Accountant/Manager"
-	if len(args) != 4 {
+	//   0          1       2      3                        4
+	// "Emp1", "Tuan",   "35",  "Staff/Accountant/Manager"  0xf7D8dA6a7a04aCdAe76421F07CF29f38f93F1Ed2
+	if len(args) != 5 {
 		return shim.Error("Incorrect number of arguments. Expecting 4")
 	}
 
@@ -63,6 +66,9 @@ func (t *DatabaseChaincode) initPerson(stub shim.ChaincodeStubInterface, args []
 	if len(args[3]) <= 0 {
 		return shim.Error("4th argument must be a non-empty string")
 	}
+	if len(args[4]) <= 0 {
+		return shim.Error("5th argument must be a non-empty string")
+	}
 	ID:= args[0]
 	Name := strings.ToLower(args[1])
 	Age, err := strconv.Atoi(args[2])
@@ -70,6 +76,7 @@ func (t *DatabaseChaincode) initPerson(stub shim.ChaincodeStubInterface, args []
 	return shim.Error("1rd argument must be a numeric string")
 	}
 	Org := strings.ToLower(args[3])
+	EthAddress := string(args[4])
 
 	// ==== Check if marble already exists ====
 	PersonAsBytes, err := stub.GetState(ID)
@@ -82,16 +89,12 @@ func (t *DatabaseChaincode) initPerson(stub shim.ChaincodeStubInterface, args []
 
 	// ==== Create marble object and marshal to JSON ====
 	objectType := "Employee"
-	person := &person{objectType, ID, Name, Age, Org}
+	person := &person{objectType, ID, Name, Age, Org, EthAddress}
 	personJSONasBytes, err := json.Marshal(person)
 	if err != nil {
 		return shim.Error(err.Error())
 	}
-	//Alternatively, build the marble json string manually if you don't want to use struct marshalling
-	//marbleJSONasString := `{"docType":"Marble",  "name": "` + marbleName + `", "color": "` + color + `", "size": ` + strconv.Itoa(size) + `, "owner": "` + owner + `"}`
-	//marbleJSONasBytes := []byte(str)
-
-	// === Save marble to state ===
+	
 	err = stub.PutState(ID, personJSONasBytes)
 	if err != nil {
 		return shim.Error(err.Error())
@@ -162,8 +165,29 @@ func (t *DatabaseChaincode) queryById(stub shim.ChaincodeStubInterface, args []s
 		return shim.Error("Incorrect number of arguments. Expecting 1")
 	}
 
-	carAsBytes, _ := stub.GetState(args[0])
-	return shim.Success(carAsBytes)
+	personAsBytes, _ := stub.GetState(args[0])
+	return shim.Success(personAsBytes)
+}
+
+func (t *DatabaseChaincode) getEthAddress(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	if len(args) != 1 {
+		return shim.Error("Incorrect number of arguments. Expecting 1")
+	}
+
+	personAsBytes, err := stub.GetState(args[0])
+	if err != nil {
+		return shim.Error("Failed to get person: " + err.Error())
+	} else if personAsBytes == nil {
+		return shim.Error("Person not found")
+	}
+
+	var person person
+	err = json.Unmarshal(personAsBytes, &person)
+	if err != nil {
+		return shim.Error("Failed to unmarshal person: " + err.Error())
+	}
+
+	return shim.Success([]byte(person.EthAddress))
 }
 
 func main() {
