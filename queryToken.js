@@ -14,9 +14,7 @@ async function main() {
        
       const userName = process.argv[2];
       const orgName = process.argv[3]; 
-      const name = process.argv[4];
-      const age = process.argv[5];
-      const ethaddress = process.argv[6];
+      
       
       if (!userName || !orgName) {
           console.log('Please provide the username and organization.');
@@ -46,10 +44,11 @@ async function main() {
       const network = await gateway.getNetwork('staffaccountant');
 
       // Get the contract from the network.
-      const contract = network.getContract('database');
+      const contract = network.getContract('token_erc20');
 
-      await contract.submitTransaction('initPerson', `Emp${userName}`, `${name}`, `${age}`, `${orgName}`, `${ethaddress}`);
-      console.log('Transaction has been submitted');
+      const result = await contract.evaluateTransaction('ClientAccountBalance');
+      //const result = await contract.evaluateTransaction('ClientAccountID');
+      console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
 
       // Disconnect from the gateway.
       await gateway.disconnect();
