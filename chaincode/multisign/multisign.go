@@ -55,7 +55,7 @@ func (t *MultisignChaincode) submitRequest(stub shim.ChaincodeStubInterface, arg
 		return shim.Error("Failed to get creator")
 	}
 
-	if string(requester) == targetAccount {
+	if hex.EncodeToString(requester) == targetAccount {
 		return shim.Error("Requester cannot submit a request to their own account")
 	}
 
