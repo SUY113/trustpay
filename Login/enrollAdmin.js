@@ -8,7 +8,7 @@ async function main() {
     try {
       	const orgName = process.argv[2];
         // Đường dẫn tới thư mục chứa tài liệu mật mã của admin được tạo bởi cryptogen
-        const cryptoConfigPath = path.resolve(__dirname, '..', '..', 'first-network', 'crypto-config', 'peerOrganizations', `org${orgName}.example.com`, 'users', `Admin@org${orgName}.example.com`, 'msp');
+        const cryptoConfigPath = path.resolve(__dirname,'..', '..', '..', 'first-network', 'crypto-config', 'peerOrganizations', `org${orgName}.example.com`, 'users', `Admin@org${orgName}.example.com`, 'msp');
         
         // Đọc chứng chỉ và khóa riêng tư của admin
         const certPath = path.join(cryptoConfigPath, 'signcerts', `Admin@org${orgName}.example.com-cert.pem`);

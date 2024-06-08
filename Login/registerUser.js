@@ -21,7 +21,7 @@ async function main() {
         }
 
         // Xây dựng đường dẫn tới thư mục chứa tài liệu mật mã của người dùng
-        const cryptoConfigPath = path.resolve(__dirname, '..', '..', 'first-network', 'crypto-config', 'peerOrganizations', `org${orgName}.example.com`, 'users', `${userName}@org${orgName}.example.com`, 'msp');
+        const cryptoConfigPath = path.resolve(__dirname,'..', '..', '..', 'first-network', 'crypto-config', 'peerOrganizations', `org${orgName}.example.com`, 'users', `${userName}@org${orgName}.example.com`, 'msp');
 
         // Kiểm tra xem thư mục của người dùng tồn tại hay không
         if (!fs.existsSync(cryptoConfigPath)) {

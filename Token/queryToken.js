@@ -20,7 +20,7 @@ async function main() {
           console.log('Please provide the username and organization.');
           return;
         }
-      const ccpPath = path.resolve(__dirname, '..', '..', 'first-network',  `connection-org${orgName}.json`);    
+      const ccpPath = path.resolve(__dirname, '..', '..', '..', 'first-network',  `connection-org${orgName}.json`);    
       const ccpJSON = fs.readFileSync(ccpPath, 'utf8');
       const ccp = JSON.parse(ccpJSON);    
       // Create a new file system based wallet for managing identities.

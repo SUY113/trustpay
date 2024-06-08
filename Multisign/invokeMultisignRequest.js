@@ -10,20 +10,12 @@ const fs = require('fs');
 
 
 async function main() {
-  try {
-       
+  try { 
+      const requestID = process.argv[4];
+      const clientTargetAddress = process.argv[5]
       const userName = process.argv[2];
       const orgName = process.argv[3]; 
-      const name = process.argv[4];
-      const age = process.argv[5];
-      const ethaddress = process.argv[6];
-      
-      
-      if (!userName || !orgName) {
-          console.log('Please provide the username and organization.');
-          return;
-        }
-      const ccpPath = path.resolve(__dirname, '..', '..', 'first-network',  `connection-org${orgName}.json`);    
+      const ccpPath = path.resolve(__dirname, '..', '..', '..', 'first-network',  `connection-org${orgName}.json`);    
       const ccpJSON = fs.readFileSync(ccpPath, 'utf8');
       const ccp = JSON.parse(ccpJSON);    
       // Create a new file system based wallet for managing identities.
@@ -47,9 +39,9 @@ async function main() {
       const network = await gateway.getNetwork('staffstaff');
 
       // Get the contract from the network.
-      const contract = network.getContract('database');
+      const contract = network.getContract('multisign');
 
-      await contract.submitTransaction('initPerson', `Emp${userName}`, `${name}`, `${age}`, `${orgName}`, `${ethaddress}`);
+      await contract.submitTransaction('submitRequest', `${requestID}`, `${clientTargetAddress}`);
       console.log('Transaction has been submitted');
 
       // Disconnect from the gateway.

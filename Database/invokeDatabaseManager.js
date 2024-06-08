@@ -23,7 +23,7 @@ async function main() {
           console.log('Please provide the username and organization.');
           return;
         }
-      const ccpPath = path.resolve(__dirname, '..', '..', 'first-network',  `connection-org${orgName}.json`);    
+      const ccpPath = path.resolve(__dirname, '..', '..', '..', 'first-network',  `connection-org${orgName}.json`);    
       const ccpJSON = fs.readFileSync(ccpPath, 'utf8');
       const ccp = JSON.parse(ccpJSON);    
       // Create a new file system based wallet for managing identities.
@@ -44,7 +44,7 @@ async function main() {
       await gateway.connect(ccp, { wallet, identity: `${userName}`, discovery: { enabled: true, asLocalhost: true } });
 
       // Get the network (channel) our contract is deployed to.
-      const network = await gateway.getNetwork('staffaccountant');
+      const network = await gateway.getNetwork('accountantmanager');
 
       // Get the contract from the network.
       const contract = network.getContract('database');

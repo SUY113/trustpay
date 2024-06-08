@@ -17,7 +17,7 @@ async function main() {
     	const userName = process.argv[2];
 	const orgName = process.argv[3];
 	
-	const ccpPath = path.resolve(__dirname, '..', '..', 'first-network', `connection-org${orgName}.json`);
+	const ccpPath = path.resolve(__dirname,'..', '..', '..', 'first-network', `connection-org${orgName}.json`);
 	const ccpJSON = fs.readFileSync(ccpPath, 'utf8');
 	const ccp = JSON.parse(ccpJSON);
 	
