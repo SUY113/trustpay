@@ -23,7 +23,7 @@ async function main() {
       const ccpJSON = fs.readFileSync(ccpPath, 'utf8');
       const ccp = JSON.parse(ccpJSON);    
       // Create a new file system based wallet for managing identities.
-      const walletPath = path.join(process.cwd(), 'wallet', `${orgName}`);
+      const walletPath = path.join(process.cwd(), '..', 'wallet', `${orgName}`);
       const wallet = new FileSystemWallet(walletPath);
       console.log(`Wallet path: ${walletPath}`);
 

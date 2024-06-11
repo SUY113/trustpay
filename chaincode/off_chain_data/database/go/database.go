@@ -38,7 +38,9 @@ func (t *DatabaseChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response
     case "queryById":
     	return t.queryById(stub, args) 
     case "getEthAddress": 
-	return t.getEthAddress(stub, args) 
+	    return t.getEthAddress(stub, args) 
+    case "updatePerson":
+    	return t.updatePerson(stub, args)
     }
     return shim.Error("Invalid function name")
 }
@@ -87,8 +89,19 @@ func (t *DatabaseChaincode) initPerson(stub shim.ChaincodeStubInterface, args []
 		return shim.Error("This person already exists: " + ID)
 	}
 
-	// ==== Create marble object and marshal to JSON ====
-	objectType := "Employee"
+	// ==== Set objectType based on Org ====
+	var objectType string
+	switch Org {
+	case "accountant":
+		objectType = "EmployeeAccountant"
+	case "staff":
+		objectType = "EmployeeStaff"
+	case "manager":
+		objectType = "EmployeeManager"
+	default:
+		objectType = "Employee"
+	}
+	
 	person := &person{objectType, ID, Name, Age, Org, EthAddress}
 	personJSONasBytes, err := json.Marshal(person)
 	if err != nil {
@@ -189,6 +202,102 @@ func (t *DatabaseChaincode) getEthAddress(stub shim.ChaincodeStubInterface, args
 
 	return shim.Success([]byte(person.EthAddress))
 }
+
+//ham nay danh rieng cho Admin
+func (t *DatabaseChaincode) updatePersonByAdmin(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	if len(args) != 5 {
+		return shim.Error("Incorrect number of arguments. Expecting 5")
+	}
+
+	ID := args[0]
+	Name := strings.ToLower(args[1])
+	Age, err := strconv.Atoi(args[2])
+	if err != nil {
+		return shim.Error("3rd argument must be a numeric string")
+	}
+	Org := strings.ToLower(args[3])
+	EthAddress := string(args[4])
+
+	// Get the existing person
+	personAsBytes, err := stub.GetState(ID)
+	if err != nil {
+		return shim.Error("Failed to get person: " + err.Error())
+	} else if personAsBytes == nil {
+		return shim.Error("Person not found")
+	}
+
+	var person person
+	err = json.Unmarshal(personAsBytes, &person)
+	if err != nil {
+		return shim.Error("Failed to unmarshal person: " + err.Error())
+	}
+
+	// Update the person details
+	person.Name = Name
+	person.Age = Age
+	person.Org = Org
+	person.EthAddress = EthAddress
+
+	// Marshal the updated person object to JSON
+	personJSONasBytes, err := json.Marshal(person)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	// Save the updated person back to the ledger
+	err = stub.PutState(ID, personJSONasBytes)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	return shim.Success(nil)
+}
+
+func (t *DatabaseChaincode) updatePerson(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	if len(args) != 3 {
+		return shim.Error("Incorrect number of arguments. Expecting 3")
+	}
+
+	ID := args[0]
+	Age, err := strconv.Atoi(args[1])
+	if err != nil {
+		return shim.Error("2nd argument must be a numeric string")
+	}
+	EthAddress := string(args[2])
+
+	// Get the existing person
+	personAsBytes, err := stub.GetState(ID)
+	if err != nil {
+		return shim.Error("Failed to get person: " + err.Error())
+	} else if personAsBytes == nil {
+		return shim.Error("Person not found")
+	}
+
+	var person person
+	err = json.Unmarshal(personAsBytes, &person)
+	if err != nil {
+		return shim.Error("Failed to unmarshal person: " + err.Error())
+	}
+
+	// Update only the Age and EthAddress fields
+	person.Age = Age
+	person.EthAddress = EthAddress
+
+	// Marshal the updated person object to JSON
+	personJSONasBytes, err := json.Marshal(person)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	// Save the updated person back to the ledger
+	err = stub.PutState(ID, personJSONasBytes)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	return shim.Success(nil)
+}
+
 
 func main() {
 	err := shim.Start(new(DatabaseChaincode))
