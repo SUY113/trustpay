@@ -4,7 +4,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const { FileSystemWallet, X509WalletMixin } = require('fabric-network');
+const { FileSystemWallet, X509WalletMixin, Gateway } = require('fabric-network');
 const fs = require('fs');
 const path = require('path');
 
@@ -81,10 +81,10 @@ app.post('/query-user', async (req, res) => {
     const channel = req.body.channel;
 
     try {
-        const ccpPath = path.resolve(__dirname, '..', '..', '..', 'first-network', `connection-org${orgName}.json`);
+        const ccpPath = path.resolve(__dirname, '..', '..', 'first-network', `connection-org${orgName}.json`);
         const ccpJSON = fs.readFileSync(ccpPath, 'utf8');
         const ccp = JSON.parse(ccpJSON);
-        const walletPath = path.join(process.cwd(), '..', 'wallet', `${orgName}`);
+        const walletPath = path.join(process.cwd(), 'wallet', `${orgName}`);
         const wallet = new FileSystemWallet(walletPath);
 
         const userExists = await wallet.exists(userName);
@@ -93,9 +93,9 @@ app.post('/query-user', async (req, res) => {
         }
 
         const gateway = new Gateway();
-        await gateway.connect(ccp, { wallet, identity: `${userName}`, discovery: { enabled: true, asLocalhost: true } });
+        await gateway.connect(ccp, { wallet, identity: userName, discovery: { enabled: true, asLocalhost: true } });
 
-        const network = await gateway.getNetwork(`${channel}`);
+        const network = await gateway.getNetwork(channel);
         const contract = network.getContract('database');
 
         const result = await contract.evaluateTransaction('queryById', `Emp${userName}`);
@@ -136,6 +136,45 @@ app.post('/login', async (req, res) => {
     } catch (error) {
         console.error(`Failed to login user "${userName}": ${error}`);
         res.status(500).json({ error: `Failed to login user "${userName}": ${error.message}` });
+    }
+});
+
+app.post('/input-info', async (req, res) => {
+    const { userName, orgName, name, age, ethAddress, channel } = req.body;
+
+    if (!userName || !orgName || !name || !age || !ethAddress) {
+        return res.status(400).json({ error: 'Please provide all required fields: userName, orgName, name, age, ethAddress' });
+    }
+
+    try {
+        const ccpPath = path.resolve(__dirname, '..', '..', 'first-network', `connection-org${orgName}.json`);
+        const ccpJSON = fs.readFileSync(ccpPath, 'utf8');
+        const ccp = JSON.parse(ccpJSON);
+
+        const walletPath = path.join(process.cwd(), 'wallet', `${orgName}`);
+        const wallet = new FileSystemWallet(walletPath);
+        console.log(`Wallet path: ${walletPath}`);
+
+        const userExists = await wallet.exists(userName);
+        if (!userExists) {
+            return res.status(400).json({ error: `An identity for the user "${userName}" does not exist in the wallet. Run the registerUser.js application before retrying` });
+        }
+
+        const gateway = new Gateway();
+        await gateway.connect(ccp, { wallet, identity: `${userName}`, discovery: { enabled: true, asLocalhost: true } });
+
+        const network = await gateway.getNetwork(channel);
+        const contract = network.getContract('database');
+
+        await contract.submitTransaction('initPerson', `Emp${userName}`, `${name}`, `${age}`, `${orgName}`, `${ethAddress}`);
+        console.log('Transaction has been submitted');
+
+        await gateway.disconnect();
+
+        res.status(200).json({ message: 'Transaction has been submitted successfully' });
+    } catch (error) {
+        console.error(`Failed to submit transaction: ${error}`);
+        res.status(500).json({ error: `Failed to submit transaction: ${error.message}` });
     }
 });
 

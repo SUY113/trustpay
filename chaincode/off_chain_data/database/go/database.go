@@ -41,6 +41,8 @@ func (t *DatabaseChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response
 	    return t.getEthAddress(stub, args) 
     case "updatePerson":
     	return t.updatePerson(stub, args)
+    case "updatePersonByAdmin":
+        return t.updatePersonByAdmin(stub, args)
     }
     return shim.Error("Invalid function name")
 }
