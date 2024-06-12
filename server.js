@@ -144,6 +144,45 @@ app.post('/input-info', async (req, res) => {
     }
 });
 
+app.post('/update-info', async (req, res) => {
+    const { userName, orgName, name, age, ethAddress, channel } = req.body;
+
+    if (!userName || !orgName || !name || !age || !ethAddress) {
+        return res.status(400).json({ error: 'Please provide all required fields: userName, orgName, name, age, ethAddress' });
+    }
+
+    try {
+        const ccpPath = path.resolve(__dirname, '..', '..', 'first-network', `connection-org${orgName}.json`);
+        const ccpJSON = fs.readFileSync(ccpPath, 'utf8');
+        const ccp = JSON.parse(ccpJSON);
+
+        const walletPath = path.join(process.cwd(), 'wallet', `${orgName}`);
+        const wallet = new FileSystemWallet(walletPath);
+        console.log(`Wallet path: ${walletPath}`);
+
+        const userExists = await wallet.exists(userName);
+        if (!userExists) {
+            return res.status(400).json({ error: `An identity for the user "${userName}" does not exist in the wallet. Run the registerUser.js application before retrying` });
+        }
+
+        const gateway = new Gateway();
+        await gateway.connect(ccp, { wallet, identity: `${userName}`, discovery: { enabled: true, asLocalhost: true } });
+
+        const network = await gateway.getNetwork(channel);
+        const contract = network.getContract('database');
+
+        await contract.submitTransaction('updatePerson', `Emp${userName}`, `${age}`, `${ethAddress}`);
+        console.log('Transaction has been submitted');
+
+        await gateway.disconnect();
+
+        res.status(200).json({ message: 'Transaction has been submitted successfully' });
+    } catch (error) {
+        console.error(`Failed to submit transaction: ${error}`);
+        res.status(500).json({ error: `Failed to submit transaction: ${error.message}` });
+    }
+});
+
 app.post('/query-user', async (req, res) => {
     const userName = req.body.userName;
     const orgName = req.body.orgName;
