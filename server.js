@@ -75,40 +75,6 @@ app.post('/register-user', async(req, res)=> {
     }
 });
 
-app.post('/query-user', async (req, res) => {
-    const userName = req.body.userName;
-    const orgName = req.body.orgName;
-    const channel = req.body.channel;
-
-    try {
-        const ccpPath = path.resolve(__dirname, '..', '..', 'first-network', `connection-org${orgName}.json`);
-        const ccpJSON = fs.readFileSync(ccpPath, 'utf8');
-        const ccp = JSON.parse(ccpJSON);
-        const walletPath = path.join(process.cwd(), 'wallet', `${orgName}`);
-        const wallet = new FileSystemWallet(walletPath);
-
-        const userExists = await wallet.exists(userName);
-        if (!userExists) {
-            return res.status(400).json({ error: `An identity for the user "${userName}" does not exist in the wallet` });
-        }
-
-        const gateway = new Gateway();
-        await gateway.connect(ccp, { wallet, identity: userName, discovery: { enabled: true, asLocalhost: true } });
-
-        const network = await gateway.getNetwork(channel);
-        const contract = network.getContract('database');
-
-        const result = await contract.evaluateTransaction('queryById', `Emp${userName}`);
-        console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
-
-        await gateway.disconnect();
-
-        res.status(200).json({ result: result.toString() });
-    } catch (error) {
-        console.error(`Failed to submit transaction: ${error}`);
-        res.status(500).json({ error: `Failed to submit transaction: ${error.message}` });
-    }
-});
 
 app.post('/login', async (req, res) => {
     const { userName, password, orgName } = req.body;
@@ -177,6 +143,42 @@ app.post('/input-info', async (req, res) => {
         res.status(500).json({ error: `Failed to submit transaction: ${error.message}` });
     }
 });
+
+app.post('/query-user', async (req, res) => {
+    const userName = req.body.userName;
+    const orgName = req.body.orgName;
+    const channel = req.body.channel;
+
+    try {
+        const ccpPath = path.resolve(__dirname, '..', '..', 'first-network', `connection-org${orgName}.json`);
+        const ccpJSON = fs.readFileSync(ccpPath, 'utf8');
+        const ccp = JSON.parse(ccpJSON);
+        const walletPath = path.join(process.cwd(), 'wallet', `${orgName}`);
+        const wallet = new FileSystemWallet(walletPath);
+
+        const userExists = await wallet.exists(userName);
+        if (!userExists) {
+            return res.status(400).json({ error: `An identity for the user "${userName}" does not exist in the wallet` });
+        }
+
+        const gateway = new Gateway();
+        await gateway.connect(ccp, { wallet, identity: userName, discovery: { enabled: true, asLocalhost: true } });
+
+        const network = await gateway.getNetwork(channel);
+        const contract = network.getContract('database');
+
+        const result = await contract.evaluateTransaction('queryById', `Emp${userName}`);
+        console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
+
+        await gateway.disconnect();
+
+        res.status(200).json({ result: result.toString() });
+    } catch (error) {
+        console.error(`Failed to submit transaction: ${error}`);
+        res.status(500).json({ error: `Failed to submit transaction: ${error.message}` });
+    }
+});
+
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
