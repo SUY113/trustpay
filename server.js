@@ -240,12 +240,11 @@ app.post('/token-mint', async (req, res) => {
         const gateway = new Gateway();
         await gateway.connect(ccp, { wallet, identity: userName, discovery: { enabled: true, asLocalhost: true } });
 
-        const network = await gateway.getNetwork(staffaccountant);
+        const network = await gateway.getNetwork('staffaccountant');
         const contract = network.getContract('token_erc20');
 
         await contract.submitTransaction('Initialize', 'TrustPayCoin', 'TPC', `0`, '18');
         const resultMint = await contract.submitTransaction('Mint', `${amount}`);
-        console.log(`Transaction has been evaluated, result is: ${result.toString()}`);
         console.log(`Transaction has been evaluated, result is: ${resultMint.toString()}`);
 
         await gateway.disconnect();
@@ -257,6 +256,119 @@ app.post('/token-mint', async (req, res) => {
     }
 })
 
+//MULTISIGN
+app.post('/submit-request', async (req, res) => {
+    const { requestID, targetAccount } = req.body;
+  
+    try {
+      const walletPath = path.join(process.cwd(), 'wallet');
+      const wallet = new FileSystemWallet(walletPath);
+  
+      const userExists = await wallet.exists('user1');
+      if (!userExists) {
+        return res.status(400).json({ error: 'An identity for the user "user1" does not exist in the wallet' });
+      }
+  
+      const gateway = new Gateway();
+      await gateway.connect(ccp, { wallet, identity: 'user1', discovery: { enabled: true, asLocalhost: true } });
+  
+      const network = await gateway.getNetwork('mychannel');
+      const contract = network.getContract('multisign');
+  
+      await contract.submitTransaction('submitRequest', requestID, targetAccount);
+  
+      await gateway.disconnect();
+  
+      res.status(200).json({ result: 'Request submitted successfully' });
+    } catch (error) {
+      res.status(500).json({ error: `Failed to submit request: ${error}` });
+    }
+  });
+  
+  app.post('/respond-request', async (req, res) => {
+    const { requestID, response } = req.body;
+  
+    try {
+      const walletPath = path.join(process.cwd(), 'wallet');
+      const wallet = new FileSystemWallet(walletPath);
+  
+      const userExists = await wallet.exists('user1');
+      if (!userExists) {
+        return res.status(400).json({ error: 'An identity for the user "user1" does not exist in the wallet' });
+      }
+  
+      const gateway = new Gateway();
+      await gateway.connect(ccp, { wallet, identity: 'user1', discovery: { enabled: true, asLocalhost: true } });
+  
+      const network = await gateway.getNetwork('mychannel');
+      const contract = network.getContract('multisign');
+  
+      await contract.submitTransaction('respondToRequest', requestID, response);
+  
+      await gateway.disconnect();
+  
+      res.status(200).json({ result: 'Response submitted successfully' });
+    } catch (error) {
+      res.status(500).json({ error: `Failed to respond to request: ${error}` });
+    }
+  });
+  
+  app.post('/evaluate-request', async (req, res) => {
+    const { requestID } = req.body;
+  
+    try {
+      const walletPath = path.join(process.cwd(), 'wallet');
+      const wallet = new FileSystemWallet(walletPath);
+  
+      const userExists = await wallet.exists('user1');
+      if (!userExists) {
+        return res.status(400).json({ error: 'An identity for the user "user1" does not exist in the wallet' });
+      }
+  
+      const gateway = new Gateway();
+      await gateway.connect(ccp, { wallet, identity: 'user1', discovery: { enabled: true, asLocalhost: true } });
+  
+      const network = await gateway.getNetwork('mychannel');
+      const contract = network.getContract('multisign');
+  
+      const result = await contract.evaluateTransaction('evaluateRequest', requestID);
+  
+      await gateway.disconnect();
+  
+      res.status(200).json({ result: result.toString() });
+    } catch (error) {
+      res.status(500).json({ error: `Failed to evaluate request: ${error}` });
+    }
+  });
+  
+  app.post('/finalize-request', async (req, res) => {
+    const { requestID } = req.body;
+  
+    try {
+      const walletPath = path.join(process.cwd(), 'wallet');
+      const wallet = new FileSystemWallet(walletPath);
+  
+      const userExists = await wallet.exists('user1');
+      if (!userExists) {
+        return res.status(400).json({ error: 'An identity for the user "user1" does not exist in the wallet' });
+      }
+  
+      const gateway = new Gateway();
+      await gateway.connect(ccp, { wallet, identity: 'user1', discovery: { enabled: true, asLocalhost: true } });
+  
+      const network = await gateway.getNetwork('mychannel');
+      const contract = network.getContract('multisign');
+  
+      const result = await contract.submitTransaction('finalizeRequest', requestID);
+  
+      await gateway.disconnect();
+  
+      res.status(200).json({ result: result.toString() });
+    } catch (error) {
+      res.status(500).json({ error: `Failed to finalize request: ${error}` });
+    }
+  });
+  
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
