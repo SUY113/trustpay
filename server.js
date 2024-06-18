@@ -244,12 +244,12 @@ app.post('/token-mint', async (req, res) => {
         const contract = network.getContract('token_erc20');
 
         await contract.submitTransaction('Initialize', 'TrustPayCoin', 'TPC', `0`, '18');
-        const resultMint = await contract.submitTransaction('Mint', `${amount}`);
-        console.log(`Transaction has been evaluated, result is: ${resultMint.toString()}`);
+        await contract.submitTransaction('Mint', `${amount}`);
+        console.log('Transaction has been submitted');
 
         await gateway.disconnect();
 
-        res.status(200).json({ resultMint: resultMint.toString() });
+        res.status(200).json({ message: 'Transaction has been submitted successfully' });
     } catch (error) {
         console.error(`Failed to submit transaction: ${error}`);
         res.status(500).json({ error: `Failed to submit transaction: ${error.message}` });
@@ -258,114 +258,129 @@ app.post('/token-mint', async (req, res) => {
 
 //MULTISIGN
 app.post('/submit-request', async (req, res) => {
-    const { requestID, targetAccount } = req.body;
+    const { userName, orgName, requestID, targetAccount } = req.body;
   
     try {
-      const walletPath = path.join(process.cwd(), 'wallet');
-      const wallet = new FileSystemWallet(walletPath);
+        const ccpPath = path.resolve(__dirname, '..', '..', 'first-network', `connection-org${orgName}.json`);
+        const ccpJSON = fs.readFileSync(ccpPath, 'utf8');
+        const ccp = JSON.parse(ccpJSON);
+        const walletPath = path.join(process.cwd(), 'wallet', `${orgName}`);
+        const wallet = new FileSystemWallet(walletPath);
+
+        const userExists = await wallet.exists(userName);
+        if (!userExists) {
+            return res.status(400).json({ error: `An identity for the user "${userName}" does not exist in the wallet` });
+        }
   
-      const userExists = await wallet.exists('user1');
-      if (!userExists) {
-        return res.status(400).json({ error: 'An identity for the user "user1" does not exist in the wallet' });
-      }
+        const gateway = new Gateway();
+        await gateway.connect(ccp, { wallet, identity: userName, discovery: { enabled: true, asLocalhost: true } });
+
+        const network = await gateway.getNetwork('staffstaff');
+        const contract = network.getContract('multisign');
+        await contract.submitTransaction('submitRequest', requestID, targetAccount);
+        console.log('Transaction has been submitted');
+
+        await gateway.disconnect();
   
-      const gateway = new Gateway();
-      await gateway.connect(ccp, { wallet, identity: 'user1', discovery: { enabled: true, asLocalhost: true } });
-  
-      const network = await gateway.getNetwork('mychannel');
-      const contract = network.getContract('multisign');
-  
-      await contract.submitTransaction('submitRequest', requestID, targetAccount);
-  
-      await gateway.disconnect();
-  
-      res.status(200).json({ result: 'Request submitted successfully' });
+        res.status(200).json({ message: 'Transaction has been submitted successfully' });
     } catch (error) {
-      res.status(500).json({ error: `Failed to submit request: ${error}` });
+        console.error(`Failed to submit transaction: ${error}`);
+        res.status(500).json({ error: `Failed to submit transaction: ${error.message}` });
     }
   });
   
-  app.post('/respond-request', async (req, res) => {
-    const { requestID, response } = req.body;
+app.post('/respond-request', async (req, res) => {
+    const { userName, orgName, requestID, response } = req.body;
   
     try {
-      const walletPath = path.join(process.cwd(), 'wallet');
-      const wallet = new FileSystemWallet(walletPath);
+        const ccpPath = path.resolve(__dirname, '..', '..', 'first-network', `connection-org${orgName}.json`);
+        const ccpJSON = fs.readFileSync(ccpPath, 'utf8');
+        const ccp = JSON.parse(ccpJSON);
+        const walletPath = path.join(process.cwd(), 'wallet', `${orgName}`);
+        const wallet = new FileSystemWallet(walletPath);
+
+        const userExists = await wallet.exists(userName);
+        if (!userExists) {
+            return res.status(400).json({ error: `An identity for the user "${userName}" does not exist in the wallet` });
+        }
   
-      const userExists = await wallet.exists('user1');
-      if (!userExists) {
-        return res.status(400).json({ error: 'An identity for the user "user1" does not exist in the wallet' });
-      }
+        const gateway = new Gateway();
+        await gateway.connect(ccp, { wallet, identity: userName, discovery: { enabled: true, asLocalhost: true } });
+
+        const network = await gateway.getNetwork('staffstaff');
+        const contract = network.getContract('multisign');
   
-      const gateway = new Gateway();
-      await gateway.connect(ccp, { wallet, identity: 'user1', discovery: { enabled: true, asLocalhost: true } });
+        await contract.submitTransaction('respondToRequest', requestID, response);
   
-      const network = await gateway.getNetwork('mychannel');
-      const contract = network.getContract('multisign');
+        await gateway.disconnect();
   
-      await contract.submitTransaction('respondToRequest', requestID, response);
-  
-      await gateway.disconnect();
-  
-      res.status(200).json({ result: 'Response submitted successfully' });
+        res.status(200).json({ message: 'Transaction has been submitted successfully' });
+
     } catch (error) {
-      res.status(500).json({ error: `Failed to respond to request: ${error}` });
+        console.error(`Failed to submit transaction: ${error}`);
+        res.status(500).json({ error: `Failed to submit transaction: ${error.message}` });
     }
   });
   
-  app.post('/evaluate-request', async (req, res) => {
-    const { requestID } = req.body;
+app.post('/evaluate-request', async (req, res) => {
+    const {userName, orgName, requestID } = req.body;
   
     try {
-      const walletPath = path.join(process.cwd(), 'wallet');
-      const wallet = new FileSystemWallet(walletPath);
+        const ccpPath = path.resolve(__dirname, '..', '..', 'first-network', `connection-org${orgName}.json`);
+        const ccpJSON = fs.readFileSync(ccpPath, 'utf8');
+        const ccp = JSON.parse(ccpJSON);
+        const walletPath = path.join(process.cwd(), 'wallet', `${orgName}`);
+        const wallet = new FileSystemWallet(walletPath);
+
+        const userExists = await wallet.exists(userName);
+        if (!userExists) {
+            return res.status(400).json({ error: `An identity for the user "${userName}" does not exist in the wallet` });
+        }
   
-      const userExists = await wallet.exists('user1');
-      if (!userExists) {
-        return res.status(400).json({ error: 'An identity for the user "user1" does not exist in the wallet' });
-      }
+        const gateway = new Gateway();
+        await gateway.connect(ccp, { wallet, identity: userName, discovery: { enabled: true, asLocalhost: true } });
+
+        const network = await gateway.getNetwork('staffstaff');
+        const contract = network.getContract('multisign');
   
-      const gateway = new Gateway();
-      await gateway.connect(ccp, { wallet, identity: 'user1', discovery: { enabled: true, asLocalhost: true } });
+        const result = await contract.evaluateTransaction('evaluateRequest', requestID);
   
-      const network = await gateway.getNetwork('mychannel');
-      const contract = network.getContract('multisign');
+        await gateway.disconnect();
   
-      const result = await contract.evaluateTransaction('evaluateRequest', requestID);
-  
-      await gateway.disconnect();
-  
-      res.status(200).json({ result: result.toString() });
+        res.status(200).json({ result: result.toString() });
     } catch (error) {
-      res.status(500).json({ error: `Failed to evaluate request: ${error}` });
+        res.status(500).json({ error: `Failed to evaluate request: ${error}` });
     }
   });
   
-  app.post('/finalize-request', async (req, res) => {
-    const { requestID } = req.body;
+app.post('/finalize-request', async (req, res) => {
+    const {userName, orgName, requestID } = req.body;
   
     try {
-      const walletPath = path.join(process.cwd(), 'wallet');
-      const wallet = new FileSystemWallet(walletPath);
+        const ccpPath = path.resolve(__dirname, '..', '..', 'first-network', `connection-org${orgName}.json`);
+        const ccpJSON = fs.readFileSync(ccpPath, 'utf8');
+        const ccp = JSON.parse(ccpJSON);
+        const walletPath = path.join(process.cwd(), 'wallet', `${orgName}`);
+        const wallet = new FileSystemWallet(walletPath);
+
+        const userExists = await wallet.exists(userName);
+        if (!userExists) {
+            return res.status(400).json({ error: `An identity for the user "${userName}" does not exist in the wallet` });
+        }
   
-      const userExists = await wallet.exists('user1');
-      if (!userExists) {
-        return res.status(400).json({ error: 'An identity for the user "user1" does not exist in the wallet' });
-      }
+        const gateway = new Gateway();
+        await gateway.connect(ccp, { wallet, identity: userName, discovery: { enabled: true, asLocalhost: true } });
+
+        const network = await gateway.getNetwork('staffstaff');
+        const contract = network.getContract('multisign');
   
-      const gateway = new Gateway();
-      await gateway.connect(ccp, { wallet, identity: 'user1', discovery: { enabled: true, asLocalhost: true } });
+        const result = await contract.submitTransaction('finalizeRequest', requestID);
   
-      const network = await gateway.getNetwork('mychannel');
-      const contract = network.getContract('multisign');
+        await gateway.disconnect();
   
-      const result = await contract.submitTransaction('finalizeRequest', requestID);
-  
-      await gateway.disconnect();
-  
-      res.status(200).json({ result: result.toString() });
+        res.status(200).json({ result: result.toString() });
     } catch (error) {
-      res.status(500).json({ error: `Failed to finalize request: ${error}` });
+        res.status(500).json({ error: `Failed to finalize request: ${error}` });
     }
   });
   
